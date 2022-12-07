@@ -150,7 +150,6 @@ def parse_json(data):
 def capa_place(items):
     for item in items:
         namespace = create_namespace("capa::" + item.namespace)
-        print(namespace)
         match_function = getFunctionContaining(toAddr(item.match))
         if match_function:
             match_function.addTag(item.capability)
