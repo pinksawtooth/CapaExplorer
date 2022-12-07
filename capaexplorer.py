@@ -1,5 +1,5 @@
 #Capa analysis importer for Ghidra.
-#@author @reb311ion
+#@author @reb311ion and @pinksawtooth
 #@keybinding shift O
 #@category Analysis
 #@toolbar capaexplorer.png
@@ -98,15 +98,18 @@ def get_namespace(namespace, namespace_path):
 
 
 def get_match_locations(match_dict):
-    matches = []
-    if 'locations' in match_dict.keys():
-        return match_dict['locations']
+    locations_list = []
+    if len(match_dict['locations']) != 0:
+        #make locations_list
+        for location in match_dict['locations']:
+            if "value" in location:
+                locations_list.append(location['value'])        
 
-    if match_dict['children']:
+    if len(match_dict['children']) != 0:
         for child in match_dict['children']:
-            matches += get_match_locations(child)
-    return matches
+            locations_list += get_match_locations(child)
 
+    return locations_list
 
 def parse_json(data):
     capa_items = []
@@ -114,7 +117,14 @@ def parse_json(data):
     for capability in range (0, len(capabilities)):    
         Current_capability = capabilities[capability]
         Current_scope = data['rules'][capabilities[capability]]['meta']['scope']
-        Matches_list = list(data['rules'][capabilities[capability]]['matches'].keys())
+        
+        #make Matches_list
+        Matches_list = []
+        for match in data['rules'][capabilities[capability]]['matches']:
+            if match[0]['type'] == "absolute":
+                Matches_list.append(match[0]['value'])
+            else:
+                Matches_list.append(0)
 
         if 'namespace' in data['rules'][capabilities[capability]]['meta']:
             Current_namespace = data['rules'][capabilities[capability]]['meta']['namespace'].replace("/", "::")
@@ -124,8 +134,8 @@ def parse_json(data):
         meta = data['rules'][capabilities[capability]]['meta']
         if not 'lib' in meta.keys() or meta['lib'] == False:
             addr_list = []
-            for match in data['rules'][capabilities[capability]]['matches'].keys():
-                addr_list += get_match_locations(data['rules'][capabilities[capability]]['matches'][match])
+            for match in data['rules'][capabilities[capability]]['matches']:
+                addr_list += get_match_locations(match[1])
 
             attack = []
             if "att&ck" in meta.keys():
@@ -140,6 +150,7 @@ def parse_json(data):
 def capa_place(items):
     for item in items:
         namespace = create_namespace("capa::" + item.namespace)
+        print(namespace)
         match_function = getFunctionContaining(toAddr(item.match))
         if match_function:
             match_function.addTag(item.capability)
