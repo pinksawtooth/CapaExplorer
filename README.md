@@ -16,7 +16,10 @@
     <img src="https://img.shields.io/badge/license-MIT-blue.svg"
   </a>
 </div>
-   
+
+## Update
+
+2022/12/06 - Support for v4.x json format has been added.
 
 ## 🚀 Installation:
 
